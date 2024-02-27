@@ -27,7 +27,7 @@ RUN set -x \
                 linux-headers
 RUN set -x \
     # && git clone --recursive https://github.com/quictls/openssl /src/openssl 
-    && wget https://github.com/quictls/openssl/archive/refs/tags/openssl-${OPENSSL_QUIC_VERSION}-quic1.tar.gz -O /src/openssl-${OPENSSL_QUIC_VERSION}-quic1.tar.gz \
+    && wget https://github.com/quictls/openssl/archive/refs/tags/opernssl-${OPENSSL_QUIC_VERSION}-quic1.tar.gz -O /src/openssl-${OPENSSL_QUIC_VERSION}-quic1.tar.gz \
     # && wget https://d7.serctl.com/downloads8/2023-05-24-10-43-45-openssl-openssl-3.0.8-quic1.tar.gz -O /src/openssl-${OPENSSL_QUIC_VERSION}-quic1.tar.gz \
     && tar -zxvf /src/openssl-${OPENSSL_QUIC_VERSION}-quic1.tar.gz -C /src \
     && mv /src/openssl-openssl-${OPENSSL_QUIC_VERSION}-quic1 /src/openssl
