@@ -79,7 +79,7 @@ COPY --from=builder /var/logs /var/logs
 COPY --from=builder /etc/nginx /etc/nginx
 
 RUN set -x \
-    && sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \
+    # && sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \
     && apk update \
     && apk upgrade \
     && apk add --no-cache tzdata pcre-dev \
