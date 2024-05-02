@@ -2,8 +2,8 @@ FROM alpine as builder
 
 LABEL maintainer="a little <little@autre.cn> https://coding.autre.cn"
 
-ARG NGINX_VERSION=1.25.4
-ARG OPENSSL_QUIC_VERSION=3.1.4
+ARG NGINX_VERSION=1.26.0
+ARG OPENSSL_QUIC_VERSION=3.1.5
 
 WORKDIR /src
 
