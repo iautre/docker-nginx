@@ -36,5 +36,5 @@ jobs:
             linux/arm64
         push: ${{ github.event_name != 'pull_request' }}
         tags: |
-            ${{ secrets.DOCKER_HUB_USERNAME }}/nginx:1.26.0
+            ${{ secrets.DOCKER_HUB_USERNAME }}/nginx:1.27.2
             ${{ secrets.DOCKER_HUB_USERNAME }}/nginx:latest
