@@ -16,6 +16,13 @@ docker pull ghcr.io/iautre/nginx:1.30.0
 docker pull ghcr.io/iautre/nginx:latest
 ```
 
+CNB:
+
+```shell
+docker pull docker.cnb.cool/autre/nginx:1.30.0
+docker pull docker.cnb.cool/autre/nginx:latest
+```
+
 ## Docker Compose 部署
 
 将 `nginx.conf` 和站点配置放到本地 `conf` 目录，将网站文件放到 `www` 目录。
