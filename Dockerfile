@@ -1,48 +1,55 @@
-FROM alpine as builder
+ARG ALPINE_VERSION=3.23.3
 
-LABEL maintainer="a little <little@autre.cn> https://coding.autre.cn"
+FROM alpine:${ALPINE_VERSION} AS builder
 
-ARG NGINX_VERSION=1.28.0
-ARG OPENSSL_QUIC_VERSION=3.3.0
+ARG ALPINE_VERSION
+ARG NGINX_VERSION=1.30.0
+ARG OPENSSL_QUIC_VERSION=3.5.6
+
+LABEL maintainer="a little <little@autre.cn> https://coding.autre.cn" \
+      org.opencontainers.image.title="docker-nginx" \
+      org.opencontainers.image.description="NGINX with HTTP/3 and QUIC support" \
+      org.opencontainers.image.version="${NGINX_VERSION}" \
+      org.opencontainers.image.base.name="alpine:${ALPINE_VERSION}" \
+      org.opencontainers.image.source="https://github.com/autre/docker-nginx"
 
 WORKDIR /src
 
-RUN set -x \
-    # && sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \
-    && apk update \
-    && apk upgrade \
+RUN set -eux \
     && apk add --no-cache --virtual .build-deps \
                 ca-certificates \
                 build-base \
-                patch \
-                cmake \
-                git \
-                mercurial \
                 perl \
                 libatomic_ops-dev \
                 libatomic_ops-static \
                 zlib-dev \
                 zlib-static \
-                pcre-dev \
+                pcre2-dev \
+                pcre2-static \
                 linux-headers
-RUN set -x \
-    # && git clone --recursive https://github.com/quictls/openssl /src/openssl 
-    && wget https://github.com/quictls/openssl/archive/refs/tags/openssl-${OPENSSL_QUIC_VERSION}-quic1.tar.gz -O /src/openssl-${OPENSSL_QUIC_VERSION}-quic1.tar.gz \
-    # && wget https://d7.serctl.com/downloads8/2023-05-24-10-43-45-openssl-openssl-3.0.8-quic1.tar.gz -O /src/openssl-${OPENSSL_QUIC_VERSION}-quic1.tar.gz \
-    && tar -zxvf /src/openssl-${OPENSSL_QUIC_VERSION}-quic1.tar.gz -C /src \
-    && mv /src/openssl-openssl-${OPENSSL_QUIC_VERSION}-quic1 /src/openssl
-    # && ls -la /src/openssl
-RUN set -x \
-    && wget http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
-    && tar -zxvf nginx-${NGINX_VERSION}.tar.gz 
+
+RUN set -eux \
+    && wget "https://github.com/openssl/openssl/releases/download/openssl-${OPENSSL_QUIC_VERSION}/openssl-${OPENSSL_QUIC_VERSION}.tar.gz" -O "/src/openssl-${OPENSSL_QUIC_VERSION}.tar.gz" \
+    && tar -zxf "/src/openssl-${OPENSSL_QUIC_VERSION}.tar.gz" -C /src \
+    && mv "/src/openssl-${OPENSSL_QUIC_VERSION}" /src/openssl
+
+RUN set -eux \
+    && wget "https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz" -O "/src/nginx-${NGINX_VERSION}.tar.gz" \
+    && tar -zxf "/src/nginx-${NGINX_VERSION}.tar.gz" -C /src
 
 WORKDIR /src/openssl
-RUN set -x \
-    && /src/openssl/Configure \
-    && make
+RUN set -eux \
+    && ./Configure \
+        --prefix=/src/openssl/build \
+        --openssldir=/src/openssl/build/ssl \
+        --libdir=lib \
+        no-shared \
+        no-tests \
+    && make -j"$(nproc)" \
+    && make install_sw
 
 WORKDIR /src/nginx-${NGINX_VERSION}
-RUN set -x \
+RUN set -eux \
     && ./configure \
         --prefix=/usr/local/nginx \
         --user=www \
@@ -52,7 +59,6 @@ RUN set -x \
         --error-log-path=/var/logs/error.log \
         --http-log-path=/var/logs/access.log \
         --conf-path=/etc/nginx/nginx.conf \
-        --with-openssl="/src/openssl" \
         --with-cc-opt="-I/src/openssl/build/include" \
         --with-ld-opt="-L/src/openssl/build/lib -static" \
         --with-threads \
@@ -66,23 +72,31 @@ RUN set -x \
         --with-http_realip_module \
         --with-http_gzip_static_module \
         --with-http_gunzip_module \
-    && make \
+    && make -j"$(nproc)" \
     && make install \
-    && strip -s /usr/local/nginx/sbin/nginx
-    #&& apk del .build-deps
+    && strip -s /usr/local/nginx/sbin/nginx \
+    && mkdir -p /var/run/nginx /var/logs
 
-FROM alpine as production 
+FROM alpine:${ALPINE_VERSION} AS production
+
+ARG ALPINE_VERSION
+ARG NGINX_VERSION=1.30.0
+ARG OPENSSL_QUIC_VERSION=3.5.6
+
+LABEL maintainer="a little <little@autre.cn> https://coding.autre.cn" \
+      org.opencontainers.image.title="docker-nginx" \
+      org.opencontainers.image.description="NGINX with HTTP/3 and QUIC support" \
+      org.opencontainers.image.version="${NGINX_VERSION}" \
+      org.opencontainers.image.base.name="alpine:${ALPINE_VERSION}" \
+      org.opencontainers.image.source="https://github.com/autre/docker-nginx"
 
 COPY --from=builder /usr/local/nginx /usr/local/nginx
 COPY --from=builder /var/run/nginx /var/run/nginx
 COPY --from=builder /var/logs /var/logs
 COPY --from=builder /etc/nginx /etc/nginx
 
-RUN set -x \
-    # && sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \
-    && apk update \
-    && apk upgrade \
-    && apk add --no-cache tzdata pcre-dev \
+RUN set -eux \
+    && apk add --no-cache tzdata pcre2 zlib libatomic_ops \
     && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && apk del tzdata \
     && rm -rf /tmp/* /var/cache/apk/* \
@@ -91,8 +105,7 @@ RUN set -x \
     && ln -sf /dev/stderr /var/logs/error.log \
     && addgroup -g 111 -S www \
     && adduser -S -D -u 111 -s /sbin/nologin -G www -g www www
-    #&& chown -R www:www /etc/nginx && chown -R www:www /var/logs \
-    
+
 ##挂载目录
 VOLUME ["/etc/nginx","/var/www","/var/logs"]
 ##conf目录： /etc/nginx

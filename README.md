@@ -1,39 +1,70 @@
-# Docker
+# docker-nginx
 
-## 启动nginx
+## 镜像
 
-将nginx.conf 放到conf目录下
+Docker Hub:
 
-``` sehll
-docker run -itd \
-    --name=nginx \
-    -p 80:80 \
-    -p 443:443 \
-    -p 443:443/udp \
-    --network=docker_net \
-    --network-alias=nginx \
-    --restart=always \
-    -v "$(pwd)/www":/var/www \
-    -v "$(pwd)/logs":/var/logs \
-    -v "$(pwd)/conf":/etc/nginx \
-    iautre/nginx:quic
+```shell
+docker pull iautre/nginx:1.30.0
+docker pull iautre/nginx:latest
 ```
 
-## 单系统架构
+GitHub Container Registry:
 
-``` shell
-docker build -t iautre/nginx .
+```shell
+docker pull ghcr.io/iautre/nginx:1.30.0
+docker pull ghcr.io/iautre/nginx:latest
 ```
 
-## 多系统构架
+## Docker Compose 部署
 
-``` shell
-docker buildx build -t iautre/nginx --platform=linux/amd64,linux/arm64 . --push
+将 `nginx.conf` 和站点配置放到本地 `conf` 目录，将网站文件放到 `www` 目录。
+
+HTTP/3/QUIC 需要同时映射 TCP `443` 和 UDP `443`。
+
+```yaml
+services:
+  nginx:
+    image: iautre/nginx:1.30.0
+    container_name: nginx
+    restart: always
+    volumes:
+      - ./conf:/etc/nginx:ro
+      - ./logs:/var/logs
+      - ./www:/var/www:ro
+    ports:
+      - 80:80
+      - 443:443
+      - 443:443/udp
+    networks:
+      - docker_net
+
+networks:
+  docker_net:
+    external: true
+    name: docker_net
 ```
 
-``` shell
-docker buildx build -t iautre/nginx --platform=linux/amd64 . --push
+启动服务：
+
+```shell
+docker compose up -d
 ```
 
+查看日志：
 
-docker build -t iautre/nginx --platform=linux/amd64 . --push
+```shell
+docker compose logs -f nginx
+```
+
+停止服务：
+
+```shell
+docker compose down
+```
+
+容器内主要目录：
+
+- 配置目录：`/etc/nginx`
+- 网站目录：`/var/www`
+- 日志目录：`/var/logs`
