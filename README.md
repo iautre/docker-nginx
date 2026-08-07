@@ -5,21 +5,21 @@
 Docker Hub:
 
 ```shell
-docker pull iautre/nginx:1.30.0
+docker pull iautre/nginx:1.31.3
 docker pull iautre/nginx:latest
 ```
 
 GitHub Container Registry:
 
 ```shell
-docker pull ghcr.io/iautre/nginx:1.30.0
+docker pull ghcr.io/iautre/nginx:1.31.3
 docker pull ghcr.io/iautre/nginx:latest
 ```
 
 CNB:
 
 ```shell
-docker pull docker.cnb.cool/autre/nginx:1.30.0
+docker pull docker.cnb.cool/autre/nginx:1.31.3
 docker pull docker.cnb.cool/autre/nginx:latest
 ```
 
@@ -32,7 +32,7 @@ HTTP/3/QUIC 需要同时映射 TCP `443` 和 UDP `443`。
 ```yaml
 services:
   nginx:
-    image: iautre/nginx:1.30.0
+    image: iautre/nginx:1.31.3
     container_name: nginx
     restart: always
     volumes:

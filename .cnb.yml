@@ -6,15 +6,15 @@ main:
         - name: docker build
           script: |
             docker build \
-              --build-arg NGINX_VERSION=1.30.0 \
-              --build-arg OPENSSL_QUIC_VERSION=3.5.6 \
-              --build-arg ALPINE_VERSION=3.23.3 \
-              -t "${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:1.30.0" \
+              --build-arg NGINX_VERSION=1.31.3 \
+              --build-arg OPENSSL_VERSION=3.5.7 \
+              --build-arg ALPINE_VERSION=3.24.1 \
+              -t "${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:1.31.3" \
               -t "${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest" \
               .
 
         - name: docker push version
-          script: docker push "${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:1.30.0"
+          script: docker push "${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:1.31.3"
 
         - name: docker push latest
           script: docker push "${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest"

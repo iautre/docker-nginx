@@ -13,9 +13,9 @@ permissions:
 env:
   IMAGE_NAME: nginx
   GHCR_OWNER: iautre
-  NGINX_VERSION: 1.30.0
-  OPENSSL_QUIC_VERSION: 3.5.6
-  ALPINE_VERSION: 3.23.3
+  NGINX_VERSION: 1.31.3
+  OPENSSL_VERSION: 3.5.7
+  ALPINE_VERSION: 3.24.1
 
 jobs:
   build:
@@ -79,7 +79,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           build-args: |
             NGINX_VERSION=${{ env.NGINX_VERSION }}
-            OPENSSL_QUIC_VERSION=${{ env.OPENSSL_QUIC_VERSION }}
+            OPENSSL_VERSION=${{ env.OPENSSL_VERSION }}
             ALPINE_VERSION=${{ env.ALPINE_VERSION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
