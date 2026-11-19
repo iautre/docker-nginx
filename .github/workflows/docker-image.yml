@@ -50,16 +50,16 @@ jobs:
           GHCR_OWNER: ${{ env.GHCR_OWNER }}
           IMAGE_NAME: ${{ env.IMAGE_NAME }}
         run: |
-          SHORT_SHA="${GITHUB_SHA:0:7}"
+          VERSION="$(grep -m1 '^ARG NGINX_VERSION=' Dockerfile | cut -d= -f2)"
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            echo "tags=${IMAGE_NAME}:sha-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+            echo "tags=${IMAGE_NAME}:${VERSION}" >> "$GITHUB_OUTPUT"
           else
             {
               echo "tags<<EOF"
               echo "${DOCKER_HUB_USERNAME}/${IMAGE_NAME}:latest"
-              echo "${DOCKER_HUB_USERNAME}/${IMAGE_NAME}:sha-${SHORT_SHA}"
+              echo "${DOCKER_HUB_USERNAME}/${IMAGE_NAME}:${VERSION}"
               echo "ghcr.io/${GHCR_OWNER,,}/${IMAGE_NAME}:latest"
-              echo "ghcr.io/${GHCR_OWNER,,}/${IMAGE_NAME}:sha-${SHORT_SHA}"
+              echo "ghcr.io/${GHCR_OWNER,,}/${IMAGE_NAME}:${VERSION}"
               echo "EOF"
             } >> "$GITHUB_OUTPUT"
           fi

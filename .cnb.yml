@@ -6,7 +6,8 @@ main:
         - name: build and push
           script: |
             IMAGE="${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}"
+            VERSION="$(grep -m1 '^ARG NGINX_VERSION=' Dockerfile | cut -d= -f2)"
             docker buildx build --platform linux/amd64,linux/arm64 \
               -t "$IMAGE:latest" \
-              -t "$IMAGE:sha-${CNB_COMMIT_SHORT}" \
+              -t "$IMAGE:${VERSION}" \
               --push .
