@@ -13,9 +13,6 @@ permissions:
 env:
   IMAGE_NAME: nginx
   GHCR_OWNER: iautre
-  NGINX_VERSION: 1.31.9
-  OPENSSL_VERSION: 4.0.3
-  ALPINE_VERSION: 3.24.3
 
 jobs:
   build:
@@ -52,17 +49,17 @@ jobs:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           GHCR_OWNER: ${{ env.GHCR_OWNER }}
           IMAGE_NAME: ${{ env.IMAGE_NAME }}
-          NGINX_VERSION: ${{ env.NGINX_VERSION }}
         run: |
+          SHORT_SHA="${GITHUB_SHA:0:7}"
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            echo "tags=${IMAGE_NAME}:${NGINX_VERSION}" >> "$GITHUB_OUTPUT"
+            echo "tags=${IMAGE_NAME}:sha-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
           else
             {
               echo "tags<<EOF"
-              echo "${DOCKER_HUB_USERNAME}/${IMAGE_NAME}:${NGINX_VERSION}"
               echo "${DOCKER_HUB_USERNAME}/${IMAGE_NAME}:latest"
-              echo "ghcr.io/${GHCR_OWNER,,}/${IMAGE_NAME}:${NGINX_VERSION}"
+              echo "${DOCKER_HUB_USERNAME}/${IMAGE_NAME}:sha-${SHORT_SHA}"
               echo "ghcr.io/${GHCR_OWNER,,}/${IMAGE_NAME}:latest"
+              echo "ghcr.io/${GHCR_OWNER,,}/${IMAGE_NAME}:sha-${SHORT_SHA}"
               echo "EOF"
             } >> "$GITHUB_OUTPUT"
           fi
@@ -77,9 +74,5 @@ jobs:
             linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
-          build-args: |
-            NGINX_VERSION=${{ env.NGINX_VERSION }}
-            OPENSSL_VERSION=${{ env.OPENSSL_VERSION }}
-            ALPINE_VERSION=${{ env.ALPINE_VERSION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

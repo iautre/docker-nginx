@@ -5,34 +5,31 @@
 Docker Hub:
 
 ```shell
-docker pull iautre/nginx:1.31.9
 docker pull iautre/nginx:latest
 ```
 
 GitHub Container Registry:
 
 ```shell
-docker pull ghcr.io/iautre/nginx:1.31.9
 docker pull ghcr.io/iautre/nginx:latest
 ```
 
 CNB:
 
 ```shell
-docker pull docker.cnb.cool/autre/nginx:1.31.9
 docker pull docker.cnb.cool/autre/nginx:latest
 ```
 
 ## Docker Compose 部署
 
-将 `nginx.conf` 和站点配置放到本地 `conf` 目录，将网站文件放到 `www` 目录。
+将 `nginx.conf` 和站点配置放到本地 `conf` 目录，将网站文件放到 `www` 目录。配置目录必须存在且含 `nginx.conf`，否则容器无法启动。
 
 HTTP/3/QUIC 需要同时映射 TCP `443` 和 UDP `443`。
 
 ```yaml
 services:
   nginx:
-    image: iautre/nginx:1.31.9
+    image: iautre/nginx:latest
     container_name: nginx
     restart: always
     volumes:

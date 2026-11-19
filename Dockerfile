@@ -128,11 +128,9 @@ RUN set -eux \
     && apk del tzdata \
     && ln -sf /usr/local/nginx/sbin/nginx /usr/bin/nginx \
     && addgroup -g 111 -S www \
-    && adduser -S -D -H -u 111 -h /var/cache/nginx -s /sbin/nologin -G www -g www www \
-    && mkdir -p /run/nginx /var/cache/nginx /var/logs \
-    && chown www:www /var/cache/nginx \
-    && ln -sf /dev/stdout /var/logs/access.log \
-    && ln -sf /dev/stderr /var/logs/error.log
+    && adduser -S -D -H -u 111 -h /var/www -s /sbin/nologin -G www -g www www \
+    && mkdir -p /run/nginx /var/www /var/logs \
+    && chown www:www /var/www
 
 EXPOSE 80/tcp 443/tcp 443/udp
 STOPSIGNAL SIGQUIT

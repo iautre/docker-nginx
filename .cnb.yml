@@ -3,18 +3,13 @@ main:
     - services:
         - docker
       stages:
-        - name: docker build
+        - name: setup buildx
+          script: docker buildx create --use
+
+        - name: build and push
           script: |
-            docker build \
-              --build-arg NGINX_VERSION=1.31.9 \
-              --build-arg OPENSSL_VERSION=4.0.3 \
-              --build-arg ALPINE_VERSION=3.24.3 \
-              -t "${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:1.31.9" \
-              -t "${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest" \
-              .
-
-        - name: docker push version
-          script: docker push "${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:1.31.9"
-
-        - name: docker push latest
-          script: docker push "${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest"
+            IMAGE="${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}"
+            docker buildx build --platform linux/amd64,linux/arm64 \
+              -t "$IMAGE:latest" \
+              -t "$IMAGE:sha-${CNB_COMMIT_SHORT}" \
+              --push .
