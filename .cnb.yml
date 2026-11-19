@@ -3,9 +3,6 @@ main:
     - services:
         - docker
       stages:
-        - name: setup buildx
-          script: docker buildx create --use
-
         - name: build and push
           script: |
             IMAGE="${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}"
