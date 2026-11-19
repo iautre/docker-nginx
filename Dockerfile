@@ -1,19 +1,27 @@
 ARG ALPINE_VERSION=3.24.3
-ARG NGINX_VERSION=1.31.8
+ARG NGINX_VERSION=1.31.9
 ARG OPENSSL_VERSION=4.0.3
-ARG NGINX_SHA256=0652b760b3b772d2ec17b47c2fc15d9a95e6fe35cd5b877eadc1a62d9bc75af1
+# ngx_brotli has no release tag after v1.0.0rc (2019), so pin the commit.
+ARG NGX_BROTLI_COMMIT=53e0fb55f250f48fe80c0ddbf6c0f7103cdbaae1
+ARG NGINX_SHA256=a11c5eeee2e257f4478f0e649f84b0040787d277d2d3e5233952aa6b6dcb80ad
 ARG OPENSSL_SHA256=325b5c806167c13b40b1ffeadfe0248197c00eccc4cf123ec1e28d2d2fd216d9
+# sha256 of the GitHub archive tarball above. GitHub may re-pack archives, so if
+# this check starts failing, re-download the same commit and update the value.
+ARG NGX_BROTLI_SHA256=27a4352dae4ba4922f9f013f3f0d02359aceeef2701872efa42849c3ba05457a
 ARG ALPINE_MIRROR=
 
 FROM alpine:${ALPINE_VERSION} AS builder
 
 ARG NGINX_VERSION
 ARG OPENSSL_VERSION
+ARG NGX_BROTLI_COMMIT
 ARG NGINX_SHA256
 ARG OPENSSL_SHA256
+ARG NGX_BROTLI_SHA256
 ARG ALPINE_MIRROR
 ARG NGINX_SOURCE_URL=https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz
 ARG OPENSSL_SOURCE_URL=https://github.com/openssl/openssl/releases/download/openssl-${OPENSSL_VERSION}/openssl-${OPENSSL_VERSION}.tar.gz
+ARG NGX_BROTLI_SOURCE_URL=https://github.com/google/ngx_brotli/archive/${NGX_BROTLI_COMMIT}.tar.gz
 
 WORKDIR /src
 
@@ -57,6 +65,13 @@ RUN set -eux \
     && make -j"$(nproc)" \
     && make install_sw
 
+RUN set -eux \
+    && wget "${NGX_BROTLI_SOURCE_URL}" -O /src/ngx_brotli.tar.gz \
+    && echo "${NGX_BROTLI_SHA256}  /src/ngx_brotli.tar.gz" | sha256sum -c - \
+    && mkdir -p /src/ngx_brotli \
+    && tar -zxf /src/ngx_brotli.tar.gz -C /src/ngx_brotli --strip-components=1 \
+    && rm /src/ngx_brotli.tar.gz
+
 WORKDIR /src/nginx-${NGINX_VERSION}
 RUN set -eux \
     && ./configure \
@@ -82,6 +97,9 @@ RUN set -eux \
         --with-pcre-jit \
         --with-http_gzip_static_module \
         --with-http_gunzip_module \
+        --add-module=/src/ngx_brotli/static \
+    && grep -q ngx_http_brotli_static_module objs/ngx_modules.c \
+    && ! grep -q ngx_http_brotli_filter_module objs/ngx_modules.c \
     && make -j"$(nproc)" \
     && make install \
     && strip -s /usr/local/nginx/sbin/nginx \
